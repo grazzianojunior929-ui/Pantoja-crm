@@ -4,7 +4,15 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-//Habilita o servidor a enteder arquivos estáticos (HTML, CSS, JS do front-end)
+// Serve os ficheiros estáticos (HTML, CSS, JS) da pasta public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Rota principal: entrega o seu index.html (CRM) quando acederes à raiz '/'
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Rota da API de status
 app.get('/api/status', (req, res) => {
     res.json({ status: 'Online', message: 'API do CRM funcionando com sucesso!' });
 });
