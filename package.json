@@ -1,0 +1,12 @@
+{
+    "name": "meu-crm",
+    "version": "1.0.0",
+    "description": "Meu CRM pessoal",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "express": "^4.19.2"
+    }
+}

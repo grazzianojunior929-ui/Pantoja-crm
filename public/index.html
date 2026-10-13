@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantoja Intimité · CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   1. TOKENS — Pantoja Intimité: vinho + rosa + vermelho escuro
+   ============================================================ */
+:root{
+  --bg:#170910; --painel:#220D16; --painel-2:#2D1420;
+  --borda:rgba(230,160,185,.16); --borda-forte:rgba(230,160,185,.32);
+  --texto:#F7E8EE; --texto-dim:#C79AAE;
+  --vinho:#8C1232; --vinho-claro:#B23A56; --vinho-fraco:rgba(140,18,50,.26);
+  --rosa:#FF6FA5; --rosa-fraco:rgba(255,111,165,.15);
+  --vermelho-escuro:#5C0A1E; --vermelho-escuro-fraco:rgba(92,10,30,.35);
+  --ambar:#D9A15C; --ambar-fraco:rgba(217,161,92,.15);
+  --vermelho:#FF5A6E; --vermelho-fraco:rgba(255,90,110,.14);
+  --titulo:"Sora",sans-serif; --sans:"Inter",sans-serif; --marca-fonte:"Playfair Display",serif;
+  --raio:14px; --pill:999px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--texto);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased;position:relative}
+h1,h2,h3{font-family:var(--titulo);margin:0}
+button{font-family:var(--sans);cursor:pointer}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--borda-forte);border-radius:8px}
+
+/* padrão sutil de corações no fundo, só decorativo */
+body::before{
+  content:"";
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cpath d='M30 20c-4-8-16-8-19 1-3 8 5 14 19 25 14-11 22-17 19-25-3-9-15-9-19-1z' fill='%23ff6fa5' fill-opacity='0.05'/%3E%3C/svg%3E");
+  background-size:120px 120px;
+  background-repeat:repeat;
+}
+.app{position:relative;z-index:1}
+
+/* ============================================================
+   2. ESQUELETO
+   ============================================================ */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+.lateral{background:var(--painel);border-right:1px solid var(--borda);padding:22px 14px;display:flex;flex-direction:column;gap:24px}
+.marca{display:flex;align-items:center;gap:10px;padding:0 6px}
+.marca .icone-marca{font-size:20px;filter:drop-shadow(0 0 6px rgba(255,111,165,.5))}
+.marca .texto-marca{display:flex;flex-direction:column;line-height:1.1}
+.marca .texto-marca b{font-family:var(--marca-fonte);font-style:italic;font-weight:700;font-size:18px;letter-spacing:.01em}
+.marca .texto-marca small{font-size:10px;color:var(--texto-dim);letter-spacing:.14em;text-transform:uppercase}
+
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;color:var(--texto-dim);padding:11px 12px;border-radius:12px;font-size:14px;font-weight:500;text-align:left;transition:.12s}
+.nav button:hover{background:var(--painel-2);color:var(--texto)}
+.nav button.ativo{background:var(--vinho-fraco);color:var(--rosa)}
+.nav button .bolha{margin-left:auto;background:var(--vermelho);color:#fff;font-size:11px;font-weight:700;padding:1px 7px;border-radius:var(--pill)}
+.nav-sep{font-size:11px;letter-spacing:.1em;color:var(--texto-dim);opacity:.6;padding:10px 12px 2px;text-transform:uppercase}
+
+.cartao-ia{margin-top:auto;background:linear-gradient(160deg,var(--rosa-fraco),transparent);border:1px solid rgba(255,111,165,.3);border-radius:var(--raio);padding:14px}
+.cartao-ia b{color:var(--rosa);font-size:13px;display:block;margin-bottom:4px}
+.cartao-ia p{margin:0;font-size:12px;color:var(--texto-dim);line-height:1.5}
+
+.principal{display:flex;flex-direction:column;min-width:0}
+.topo{height:66px;border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between;padding:0 26px;flex-shrink:0}
+.topo h1{font-size:19px;display:flex;align-items:center;gap:8px}
+.topo .direita{display:flex;align-items:center;gap:14px}
+.busca{background:var(--painel);border:1px solid var(--borda);border-radius:var(--pill);padding:9px 16px;color:var(--texto);font-size:13px;width:220px}
+.busca::placeholder{color:var(--texto-dim)}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,var(--vinho),var(--vermelho-escuro));border:1px solid var(--borda);display:flex;align-items:center;justify-content:center;font-family:var(--titulo);font-size:13px;color:var(--texto);box-shadow:0 4px 14px rgba(0,0,0,.35)}
+
+.tela{flex:1;overflow-y:auto;padding:26px}
+.vista{display:none}
+.vista.ativa{display:block}
+
+/* ============================================================
+   3. DASHBOARD
+   ============================================================ */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.kpi span{font-size:12px;color:var(--texto-dim);letter-spacing:.02em}
+.kpi strong{display:block;font-family:var(--titulo);font-size:26px;margin-top:6px}
+.kpi small{display:block;margin-top:4px;font-size:12px}
+.kpi small.pos{color:var(--rosa)} .kpi small.neg{color:var(--vermelho)}
+
+.painel-dupla{display:grid;grid-template-columns:1.6fr 1fr;gap:14px}
+.caixa{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.caixa h3{font-size:14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+
+.barras{display:flex;align-items:flex-end;gap:10px;height:150px}
+.barras .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px}
+.barras .col i{width:100%;background:linear-gradient(180deg,var(--rosa),rgba(255,111,165,.2));border-radius:8px 8px 0 0}
+.barras .col span{font-size:11px;color:var(--texto-dim);text-align:center;line-height:1.3}
+
+.lista-simples{display:flex;flex-direction:column;gap:3px}
+.item-simples{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:10px}
+.item-simples:hover{background:var(--painel-2)}
+.item-simples .pt{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.item-simples .nome{flex:1;font-size:13px}
+.item-simples .quando{font-size:11px;color:var(--texto-dim)}
+
+/* ============================================================
+   4. BOTÕES / TAGS / CHIPS genéricos (pill)
+   ============================================================ */
+.btn{background:var(--rosa);color:#2B0A12;border:0;border-radius:var(--pill);padding:10px 18px;font-weight:700;font-size:13px;box-shadow:0 6px 16px rgba(255,111,165,.25)}
+.btn:hover{filter:brightness(1.06)}
+.btn-fantasma{background:transparent;border:1px solid var(--borda-forte);color:var(--texto);box-shadow:none}
+.btn-perigo{background:var(--vermelho);color:#2B0A0A}
+.btn-escuro{background:var(--vermelho-escuro);color:var(--texto);box-shadow:none}
+
+.tag{font-size:10px;padding:3px 9px;border-radius:var(--pill);font-weight:700;letter-spacing:.02em}
+.tag.quente{background:var(--vermelho-fraco);color:var(--vermelho)}
+.tag.morno{background:var(--ambar-fraco);color:var(--ambar)}
+.tag.frio{background:rgba(230,160,185,.14);color:var(--texto-dim)}
+
+/* ============================================================
+   5. LEADS — FUNIS
+   ============================================================ */
+.funis-barra{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.funil-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.funil-tab{display:flex;align-items:center;gap:6px;background:var(--painel);border:1px solid var(--borda);border-radius:var(--pill);padding:6px 6px 6px 14px;font-size:13px;transition:.12s}
+.funil-tab:hover{border-color:var(--borda-forte)}
+.funil-tab.ativo{background:var(--vinho-fraco);border-color:rgba(255,111,165,.4)}
+.funil-tab.ativo .nome-funil{color:var(--rosa)}
+.funil-tab .nome-funil{font-weight:600;cursor:pointer;padding:2px 2px}
+.contagem-tab{background:var(--painel-2);color:var(--texto-dim);font-size:11px;padding:1px 8px;border-radius:var(--pill);flex-shrink:0}
+.funil-tab.ativo .contagem-tab{background:rgba(255,111,165,.22);color:var(--rosa)}
+.icone-mini{background:none;border:0;color:inherit;opacity:.55;font-size:12px;padding:5px 7px;border-radius:50%;line-height:1}
+.icone-mini:hover{opacity:1;background:rgba(255,255,255,.08)}
+.linha-acoes-funil{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
+
+.aviso-topo{color:var(--texto-dim);font-size:13px;max-width:68ch;margin:0 0 16px;line-height:1.6}
+
+.kanban{display:grid;gap:12px;align-items:start;overflow-x:auto;padding-bottom:6px}
+.coluna{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);padding:12px;min-height:120px;min-width:210px}
+.coluna h4{font-size:12px;letter-spacing:.04em;color:var(--texto-dim);display:flex;justify-content:space-between;margin-bottom:10px;text-transform:uppercase}
+.coluna h4 em{font-style:normal;background:var(--painel-2);border-radius:var(--pill);padding:1px 8px;font-size:11px}
+.coluna.arrastando-sobre{outline:1.5px dashed var(--rosa);outline-offset:-4px}
+
+.card-lead{background:var(--painel-2);border:1px solid var(--borda);border-radius:12px;padding:11px;margin-bottom:8px;cursor:grab}
+.card-lead:active{cursor:grabbing}
+.card-lead b{display:block;font-size:13px;margin-bottom:3px}
+.card-lead .empresa{font-size:11.5px;color:var(--texto-dim)}
+.card-lead .rodape{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.card-lead .linha-mover{margin-top:8px;display:flex;justify-content:flex-end}
+.btn-mover{background:none;border:1px solid var(--borda);color:var(--texto-dim);font-size:10.5px;padding:3px 10px;border-radius:var(--pill)}
+.btn-mover:hover{border-color:var(--rosa);color:var(--rosa)}
+
+.linha-etapa-edit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.linha-etapa-edit input{flex:1;background:var(--painel-2);border:1px solid var(--borda);border-radius:8px;padding:9px 11px;color:var(--texto);font-family:var(--sans);font-size:13px}
+
+/* ============================================================
+   6. CAMPANHA — DISCADOR AUTOMÁTICO
+   ============================================================ */
+.campanha-topo{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;gap:20px}
+.campanha-topo p{color:var(--texto-dim);margin:6px 0 0;max-width:52ch;font-size:13px}
+
+.discador{display:grid;grid-template-columns:1fr 340px;gap:14px}
+
+.palco-discagem{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);padding:28px;text-align:center;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.avatar-grande{width:74px;height:74px;border-radius:50%;background:linear-gradient(145deg,var(--vinho),var(--vermelho-escuro));border:2px solid var(--borda-forte);display:flex;align-items:center;justify-content:center;font-family:var(--titulo);font-size:24px;color:var(--texto);position:relative}
+.avatar-grande.tocando{border-color:var(--ambar);animation:pulsar 1s infinite}
+.avatar-grande.atendeu{border-color:var(--rosa)}
+.avatar-grande.perdeu{border-color:var(--vermelho)}
+@keyframes pulsar{0%,100%{box-shadow:0 0 0 0 rgba(217,161,92,.4)}50%{box-shadow:0 0 0 14px rgba(217,161,92,0)}}
+
+.palco-discagem h2{font-size:19px}
+.palco-discagem .empresa-atual{color:var(--texto-dim);font-size:13px}
+.status-chip{font-size:12px;font-weight:700;letter-spacing:.04em;padding:5px 14px;border-radius:var(--pill);text-transform:uppercase}
+.status-chip.idle{background:var(--painel-2);color:var(--texto-dim)}
+.status-chip.discando{background:var(--rosa-fraco);color:var(--rosa)}
+.status-chip.tocando{background:var(--ambar-fraco);color:var(--ambar)}
+.status-chip.atendeu{background:var(--vinho-fraco);color:var(--rosa)}
+.status-chip.perdeu{background:var(--vermelho-fraco);color:var(--vermelho)}
+
+.onda{display:flex;align-items:center;gap:3px;height:26px}
+.onda i{width:3px;background:var(--rosa);border-radius:2px;animation:onda .9s ease-in-out infinite}
+.onda i:nth-child(2){animation-delay:.1s}.onda i:nth-child(3){animation-delay:.2s}
+.onda i:nth-child(4){animation-delay:.3s}.onda i:nth-child(5){animation-delay:.4s}
+@keyframes onda{0%,100%{height:6px}50%{height:24px}}
+.onda.parado i{animation:none;height:4px;opacity:.3}
+
+.controles-discagem{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+.fila-caixa{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);padding:16px;display:flex;flex-direction:column;gap:4px;max-height:420px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.fila-caixa h3{font-size:13px;margin-bottom:10px}
+.fila-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:10px;border:1px solid transparent}
+.fila-item.atual{background:var(--rosa-fraco);border-color:rgba(255,111,165,.3)}
+.fila-item .bolinha{width:26px;height:26px;border-radius:50%;background:var(--painel-2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.fila-item .txt{flex:1;min-width:0}
+.fila-item .txt b{display:block;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fila-item .txt small{color:var(--texto-dim);font-size:11px}
+.fila-item .resultado{font-size:14px}
+.fila-item.feita{opacity:.55}
+
+/* ============================================================
+   7. IA COPILOTO + MEMÓRIA
+   ============================================================ */
+.ia-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.sugestao{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);padding:18px;border-left:3px solid var(--rosa);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.sugestao .rotulo{color:var(--rosa);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.sugestao p{margin:0;font-size:13.5px;line-height:1.6}
+.sugestao .acao{margin-top:12px;font-size:12.5px;color:var(--rosa);font-weight:600}
+
+.chat-ia{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);display:flex;flex-direction:column;height:420px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.chat-corpo{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.bolha-chat{max-width:80%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.5}
+.bolha-chat.ia{background:var(--painel-2);align-self:flex-start;border:1px solid var(--borda)}
+.bolha-chat.eu{background:var(--vinho-fraco);color:var(--rosa);align-self:flex-end}
+.chat-rodape{display:flex;gap:8px;padding:14px;border-top:1px solid var(--borda)}
+.chat-rodape input{flex:1;background:var(--painel-2);border:1px solid var(--borda);border-radius:var(--pill);padding:10px 16px;color:var(--texto)}
+
+.memoria-ia .nivel-ia{font-family:var(--titulo);color:var(--rosa);font-size:13px;background:var(--rosa-fraco);padding:4px 12px;border-radius:var(--pill)}
+.barra-nivel{height:8px;background:var(--painel-2);border-radius:var(--pill);overflow:hidden;margin:10px 0 14px}
+.barra-nivel i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--rosa),var(--vinho));transition:width .3s ease}
+.memoria-stats{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:14px}
+.memoria-stats div span{display:block;font-size:11px;color:var(--texto-dim)}
+.memoria-stats div strong{font-family:var(--titulo);font-size:20px}
+.chip-tema{background:var(--rosa-fraco);color:var(--rosa);font-size:11px;padding:4px 11px;border-radius:var(--pill);font-weight:600;display:inline-block}
+.temas-caixa{display:flex;gap:6px;flex-wrap:wrap}
+
+@media (max-width:980px){
+  .app{grid-template-columns:1fr} .lateral{display:none}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .painel-dupla,.discador,.ia-grid{grid-template-columns:1fr}
+  .conversas-tela{grid-template-columns:1fr}
+  .tabela-contatos{overflow-x:auto;display:block}
+}
+
+/* ============================================================
+   8. DRAWER — painel lateral de detalhe do lead
+   ============================================================ */
+.overlay-drawer{position:fixed;inset:0;background:rgba(10,3,6,.65);backdrop-filter:blur(2px);z-index:50;display:none}
+.overlay-drawer.aberto{display:block}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:min(440px,100%);background:var(--painel);border-left:1px solid var(--borda);z-index:51;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column}
+.drawer.aberto{transform:translateX(0)}
+.drawer-topo{padding:20px;border-bottom:1px solid var(--borda);display:flex;justify-content:space-between;align-items:flex-start}
+.drawer-topo h2{font-size:18px}
+.drawer-topo small{color:var(--texto-dim)}
+.drawer-topo .fechar{background:none;border:0;color:var(--texto-dim);font-size:20px;line-height:1}
+.drawer-tabs{display:flex;padding:0 20px;border-bottom:1px solid var(--borda)}
+.drawer-tabs button{background:none;border:0;color:var(--texto-dim);padding:12px 4px;font-size:13px;font-weight:600;border-bottom:2px solid transparent;margin-right:18px}
+.drawer-tabs button.ativo{color:var(--rosa);border-color:var(--rosa)}
+.drawer-corpo{flex:1;overflow-y:auto;padding:20px}
+.drawer-secao{display:none}
+.drawer-secao.ativa{display:block}
+.campo-info{margin-bottom:14px}
+.campo-info span{display:block;font-size:11px;color:var(--texto-dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.campo-info strong{font-size:14px;font-weight:500}
+.linha-acoes-drawer{display:flex;gap:8px;margin:18px 0;flex-wrap:wrap}
+.timeline{display:flex;flex-direction:column}
+.timeline-item{position:relative;padding:0 0 18px 22px;border-left:2px solid var(--borda)}
+.timeline-item:last-child{border-color:transparent}
+.timeline-item::before{content:"";position:absolute;left:-6px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--rosa)}
+.timeline-item b{display:block;font-size:13px}
+.timeline-item small{color:var(--texto-dim);font-size:11.5px}
+.vazio{text-align:center;color:var(--texto-dim);padding:40px 10px;font-size:13px}
+
+/* ============================================================
+   9. MODAL genérico
+   ============================================================ */
+.overlay-modal{position:fixed;inset:0;background:rgba(10,3,6,.65);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay-modal.aberto{display:flex}
+.modal-caixa{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);width:min(420px,100%);padding:24px;max-height:86vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.modal-caixa h3{font-size:16px;margin-bottom:16px}
+.campo{margin-bottom:14px;display:flex;flex-direction:column;gap:6px}
+.campo label{font-size:12px;color:var(--texto-dim)}
+.campo select,.campo input{background:var(--painel-2);border:1px solid var(--borda);border-radius:10px;padding:9px 11px;color:var(--texto);font-family:var(--sans);font-size:13px}
+.modal-acoes{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+
+/* ============================================================
+   10. AGENDA
+   ============================================================ */
+.agenda-topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.agenda-dia{font-size:12px;color:var(--texto-dim);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 8px}
+.agenda-dia:first-child{margin-top:0}
+.compromisso{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);padding:13px 16px;display:flex;align-items:center;gap:14px;margin-bottom:8px}
+.compromisso .hora-box{width:50px;text-align:center;font-family:var(--titulo);font-weight:700;color:var(--rosa);flex-shrink:0;font-size:14px}
+.compromisso .info{flex:1;min-width:0}
+.compromisso .info b{display:block;font-size:13.5px}
+.compromisso .info small{color:var(--texto-dim);font-size:12px}
+.status-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--pill);flex-shrink:0}
+.status-pill.Pendente{background:var(--ambar-fraco);color:var(--ambar)}
+.status-pill.Concluído{background:var(--vinho-fraco);color:var(--rosa)}
+.status-pill.Cancelado{background:var(--vermelho-fraco);color:var(--vermelho)}
+
+/* ============================================================
+   11. CONVERSAS — inbox estilo central de atendimento
+   ============================================================ */
+.conversas-tela{display:grid;grid-template-columns:300px 1fr;gap:14px;height:calc(100vh - 170px)}
+
+.painel-lista-conversas{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.conversas-topo-lista{padding:14px 14px 10px;border-bottom:1px solid var(--borda)}
+.conversas-topo-lista input{width:100%;background:var(--painel-2);border:1px solid var(--borda);border-radius:var(--pill);padding:9px 14px;color:var(--texto);font-size:13px;margin-bottom:10px}
+.filtros-conversa{display:flex;gap:6px;flex-wrap:wrap}
+.filtro-chip{background:var(--painel-2);border:1px solid var(--borda);color:var(--texto-dim);font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:var(--pill)}
+.filtro-chip.ativo{background:var(--vinho-fraco);border-color:rgba(255,111,165,.4);color:var(--rosa)}
+
+.lista-conversas{flex:1;overflow-y:auto}
+.conversa-item{display:flex;gap:10px;padding:13px 14px;border-bottom:1px solid var(--borda);cursor:pointer;position:relative}
+.conversa-item:hover,.conversa-item.ativa{background:var(--painel-2)}
+.conversa-item .av{width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,var(--vinho),var(--vermelho-escuro));display:flex;align-items:center;justify-content:center;font-family:var(--titulo);font-size:12px;color:var(--texto);flex-shrink:0}
+.conversa-item .txt{min-width:0;flex:1}
+.conversa-item .linha-nome{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.conversa-item .txt b{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conversa-item .txt small{color:var(--texto-dim);font-size:11.5px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px;margin-top:2px}
+.conversa-item .hora-msg{font-size:10.5px;color:var(--texto-dim);flex-shrink:0}
+.conversa-item .naolida{background:var(--rosa);color:#2B0A12;font-size:10.5px;font-weight:800;min-width:18px;height:18px;border-radius:var(--pill);display:flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0}
+
+.painel-conversa{background:var(--painel);border:1px solid var(--borda);border-radius:var(--raio);display:flex;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,.25);overflow:hidden}
+.conversa-cabecalho{padding:14px 18px;border-bottom:1px solid var(--borda)}
+.conversa-cabecalho-linha1{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.conversa-cabecalho-nome{display:flex;align-items:center;gap:8px}
+.conversa-cabecalho-nome b{font-size:15px}
+.conversa-cabecalho-nome button{background:none;border:0;color:var(--texto-dim);font-size:12px;opacity:.6}
+.conversa-cabecalho-nome button:hover{opacity:1;color:var(--rosa)}
+.conversa-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.conversa-tags .tag-funil{background:var(--painel-2);color:var(--texto-dim);font-size:10.5px;padding:3px 9px;border-radius:var(--pill);font-weight:600}
+.tag-automacao{background:var(--ambar-fraco);color:var(--ambar);font-size:10.5px;padding:3px 9px;border-radius:var(--pill);font-weight:700}
+.conversa-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.conversa-acoes .btn, .conversa-acoes .btn-fantasma{padding:7px 13px;font-size:12px}
+
+.toggle-treino{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--texto-dim)}
+.toggle-treino input{accent-color:var(--rosa)}
+.conversa-corpo{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:72%;padding:10px 14px;border-radius:16px;font-size:13.5px;line-height:1.5;position:relative}
+.msg.lead{background:var(--painel-2);align-self:flex-start;border:1px solid var(--borda);border-bottom-left-radius:4px}
+.msg.equipe{background:var(--vinho-fraco);color:var(--rosa);align-self:flex-end;border-bottom-right-radius:4px}
+.msg.treino::after{content:"✦ exemplo p/ treino da IA";position:absolute;bottom:-16px;right:2px;font-size:10px;color:var(--rosa);white-space:nowrap}
+.conversa-rodape{display:flex;gap:8px;padding:14px;border-top:1px solid var(--borda);align-items:center}
+.conversa-rodape input{flex:1;background:var(--painel-2);border:1px solid var(--borda);border-radius:var(--pill);padding:10px 16px;color:var(--texto)}
+
+/* ============================================================
+   12. CONTATOS — tabela
+   ============================================================ */
+.contatos-topo{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.contatos-topo input{background:var(--painel);border:1px solid var(--borda);border-radius:var(--pill);padding:9px 16px;color:var(--texto);font-size:13px;width:260px}
+.tabela-contatos{width:100%;border-collapse:separate;border-spacing:0 8px}
+.tabela-contatos thead th{text-align:left;font-size:11px;color:var(--texto-dim);text-transform:uppercase;letter-spacing:.06em;padding:0 14px 6px}
+.tabela-contatos tbody tr{background:var(--painel);box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.tabela-contatos tbody td{padding:13px 14px;font-size:13px;border-top:1px solid var(--borda);border-bottom:1px solid var(--borda)}
+.tabela-contatos tbody td:first-child{border-left:1px solid var(--borda);border-radius:12px 0 0 12px}
+.tabela-contatos tbody td:last-child{border-right:1px solid var(--borda);border-radius:0 12px 12px 0}
+.tabela-contatos .nome-contato{font-weight:600}
+.tabela-contatos .acoes-linha{display:flex;gap:6px}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- ============================================================
+       SIDEBAR
+       ============================================================ -->
+  <aside class="lateral">
+    <div class="marca">
+      <span class="icone-marca">🌹</span>
+      <div class="texto-marca">
+        <b>Pantoja Intimité</b>
+        <small>CRM da boutique</small>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-sep">Visão geral</div>
+      <button class="ativo" data-tela="dashboard">📊 Dashboard</button>
+      <div class="nav-sep">Atendimento</div>
+      <button data-tela="conversas">💬 Conversas</button>
+      <button data-tela="contatos">👥 Contatos</button>
+      <button data-tela="agenda">📅 Agenda</button>
+      <div class="nav-sep">Vendas</div>
+      <button data-tela="leads">🗂️ Funis</button>
+      <button data-tela="campanha">📞 Não retornados <span class="bolha" id="contadorFila">0</span></button>
+      <div class="nav-sep">Inteligência</div>
+      <button data-tela="ia">✦ IA Copiloto</button>
+    </nav>
+
+    <div class="cartao-ia">
+      <b>🌹 Sugestão da IA</b>
+      <p id="dicaLateral">Carregando análise das clientes...</p>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       ÁREA PRINCIPAL
+       ============================================================ -->
+  <div class="principal">
+    <header class="topo">
+      <h1 id="tituloTela">Dashboard</h1>
+      <div class="direita">
+        <input class="busca" placeholder="Buscar cliente, empresa...">
+        <div class="avatar">PI</div>
+      </div>
+    </header>
+
+    <main class="tela">
+
+      <!-- ===== VISTA: DASHBOARD ===== -->
+      <section class="vista ativa" id="vista-dashboard">
+        <div class="kpis">
+          <div class="kpi"><span>Leads em 1ª etapa</span><strong id="kpiNovos">0</strong><small class="pos">↑ topo do funil</small></div>
+          <div class="kpi"><span>Taxa de conversão</span><strong id="kpiConversao">0%</strong><small class="pos">até a última etapa</small></div>
+          <div class="kpi"><span>Ligações hoje</span><strong id="kpiLigacoes">0</strong><small>manual + automático</small></div>
+          <div class="kpi"><span>Não retornados</span><strong id="kpiNaoRetornados">0</strong><small class="neg">precisam de ação</small></div>
+        </div>
+
+        <div class="painel-dupla">
+          <div class="caixa">
+            <h3>Leads por funil</h3>
+            <div class="barras" id="graficoBarras"></div>
+          </div>
+          <div class="caixa">
+            <h3>Atividade recente</h3>
+            <div class="lista-simples" id="listaAtividade"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VISTA: CONVERSAS ===== -->
+      <section class="vista" id="vista-conversas">
+        <div class="conversas-tela">
+
+          <div class="painel-lista-conversas">
+            <div class="conversas-topo-lista">
+              <input id="buscaConversas" placeholder="Buscar nome ou empresa...">
+              <div class="filtros-conversa" id="filtrosConversa"></div>
+            </div>
+            <div class="lista-conversas" id="listaConversas"></div>
+          </div>
+
+          <div class="painel-conversa">
+            <div class="conversa-cabecalho" id="conversaCabecalho" style="display:none">
+              <div class="conversa-cabecalho-linha1">
+                <div class="conversa-cabecalho-nome">
+                  <b id="conversaNome">—</b>
+                  <button id="btnRenomearLeadConversa" title="Renomear">✎</button>
+                </div>
+                <label class="toggle-treino">
+                  <input type="checkbox" id="marcarTreino">
+                  treino da IA
+                </label>
+              </div>
+              <div class="conversa-tags" id="conversaTags"></div>
+              <div class="conversa-acoes">
+                <button class="btn" id="btnAgendarConversa">📅 Agendar</button>
+                <button class="btn-fantasma btn" id="btnMarcarAtendidoConversa">✓ Marcar atendido</button>
+                <button class="btn-fantasma btn" id="btnToggleAutomacao">⏸ Pausar automação</button>
+              </div>
+            </div>
+            <div class="conversa-corpo" id="conversaCorpo">
+              <div class="vazio">🌹 Escolha uma cliente na lista ao lado para ver a conversa.</div>
+            </div>
+            <div class="conversa-rodape">
+              <input id="conversaInput" placeholder="Escreva uma mensagem..." disabled>
+              <button class="btn" id="btnEnviarConversa" disabled>Enviar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VISTA: CONTATOS ===== -->
+      <section class="vista" id="vista-contatos">
+        <div class="contatos-topo">
+          <input id="buscaContatos" placeholder="Buscar por nome ou empresa...">
+          <button class="btn" id="btnNovoLeadContatos">+ Nova cliente</button>
+        </div>
+        <table class="tabela-contatos">
+          <thead>
+            <tr>
+              <th>Nome</th><th>Empresa</th><th>Telefone</th><th>Funil</th><th>Etapa</th><th>Temperatura</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaContatosCorpo"></tbody>
+        </table>
+      </section>
+
+      <!-- ===== VISTA: LEADS / FUNIS ===== -->
+      <section class="vista" id="vista-leads">
+        <div class="funis-barra">
+          <div class="funil-tabs" id="funilTabs"></div>
+          <div class="linha-acoes-funil">
+            <button class="btn btn-fantasma" id="btnNovoFunil">+ Novo funil</button>
+            <button class="btn btn-fantasma" id="btnEditarEtapas">⚙ Editar etapas</button>
+            <button class="btn" id="btnNovoLead">+ Nova cliente</button>
+          </div>
+        </div>
+        <p class="aviso-topo">Arraste os cards entre colunas para mudar a etapa. Clique em "+ Novo funil" para criar quantos funis quiser (com modelo pronto ou do zero), use ✎ / 🗑 em cada aba para renomear ou excluir um funil inteiro, e "↔ mover de funil" em qualquer card para levar uma cliente de um funil para outro.</p>
+        <div class="kanban" id="kanban"></div>
+      </section>
+
+      <!-- ===== VISTA: CAMPANHA / DISCADOR ===== -->
+      <section class="vista" id="vista-campanha">
+        <div class="campanha-topo">
+          <div>
+            <h2 style="font-size:19px">🌹 Campanha: Clientes não retornadas</h2>
+            <p>O discador liga em sequência para cada cliente da fila. Quando uma atende, a chamada para; quando ninguém atende, ele avança sozinho para a próxima depois de alguns segundos.</p>
+          </div>
+        </div>
+
+        <div class="discador">
+          <div class="palco-discagem">
+            <div class="avatar-grande" id="avatarDiscagem">--</div>
+            <div>
+              <h2 id="nomeAtual">Fila parada</h2>
+              <div class="empresa-atual" id="empresaAtual">Clique em iniciar para começar a discagem</div>
+            </div>
+            <span class="status-chip idle" id="statusChip">AGUARDANDO</span>
+            <div class="onda parado" id="onda">
+              <i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="controles-discagem">
+              <button class="btn" id="btnIniciarDiscagem">▶ Iniciar discagem</button>
+              <button class="btn btn-fantasma" id="btnPausarDiscagem" disabled>⏸ Pausar</button>
+              <button class="btn btn-fantasma" id="btnPularDiscagem" disabled>⏭ Pular</button>
+            </div>
+          </div>
+
+          <div class="fila-caixa">
+            <h3>Fila de hoje</h3>
+            <div id="listaFila"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VISTA: AGENDA ===== -->
+      <section class="vista" id="vista-agenda">
+        <div class="agenda-topo">
+          <p style="color:var(--texto-dim);font-size:13px;max-width:50ch">Compromissos com suas clientes, organizados por dia.</p>
+          <button class="btn" id="btnNovoAgendamento">+ Novo agendamento</button>
+        </div>
+        <div id="listaAgenda"></div>
+      </section>
+
+      <!-- ===== VISTA: IA COPILOTO ===== -->
+      <section class="vista" id="vista-ia">
+
+        <div class="caixa memoria-ia" style="margin-bottom:14px">
+          <h3>✦ Memória da IA <span class="nivel-ia" id="nivelIA">Iniciante</span></h3>
+          <div class="barra-nivel"><i id="barraNivelIA"></i></div>
+          <p style="color:var(--texto-dim);font-size:12.5px;margin:0 0 14px;max-width:70ch">
+            A IA observa cada mensagem enviada às clientes e cada pergunta feita a ela aqui, e guarda isso como aprendizado local no seu navegador. Hoje isso roda só com regras e contagem de palavras — é a base de dados que, ao conectar uma IA real por trás (com backend e chave de API), vira o treino dela.
+          </p>
+          <div class="memoria-stats">
+            <div><span>Interações analisadas</span><strong id="qtdInteracoes">0</strong></div>
+            <div><span>Exemplos de treino</span><strong id="qtdTreinos">0</strong></div>
+          </div>
+          <div class="temas-caixa" id="temasAprendidos"></div>
+        </div>
+
+        <div class="ia-grid" id="gradeSugestoes"></div>
+
+        <div class="chat-ia">
+          <div class="chat-corpo" id="chatCorpo">
+            <div class="bolha-chat ia">Oi! Eu analiso sua base de clientes e sugiro por onde começar o dia. Pergunte algo como "quais clientes eu devo ligar primeiro?" ou "o que você já aprendeu?".</div>
+          </div>
+          <div class="chat-rodape">
+            <input id="chatInput" placeholder="Pergunte algo para a IA...">
+            <button class="btn" id="btnEnviarChat">Enviar</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ===== DRAWER DE DETALHE DO LEAD ===== -->
+<div class="overlay-drawer" id="overlayDrawer"></div>
+<aside class="drawer" id="drawerLead">
+  <div class="drawer-topo">
+    <div><h2 id="drawerNome">Nome</h2><small id="drawerEmpresa">Empresa</small></div>
+    <button class="fechar" id="btnFecharDrawer">✕</button>
+  </div>
+  <div class="drawer-tabs">
+    <button class="ativo" data-aba="info">Informações</button>
+    <button data-aba="atividade">Atividades</button>
+    <button data-aba="agenda">Agendamentos</button>
+  </div>
+  <div class="drawer-corpo">
+    <div class="drawer-secao ativa" id="drawer-info">
+      <div class="campo-info"><span>Telefone</span><strong id="drawerTelefone"></strong></div>
+      <div class="campo-info"><span>Etapa</span><strong id="drawerEtapa"></strong></div>
+      <div class="campo-info"><span>Temperatura</span><strong id="drawerTemperatura"></strong></div>
+      <div class="linha-acoes-drawer">
+        <button class="btn" id="btnAbrirConversaDrawer">💬 Conversar</button>
+        <button class="btn btn-fantasma" id="btnAgendarDrawer">📅 Agendar</button>
+      </div>
+    </div>
+    <div class="drawer-secao" id="drawer-atividade">
+      <div class="timeline" id="timelineLead"></div>
+    </div>
+    <div class="drawer-secao" id="drawer-agenda">
+      <div id="agendaDoLead"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MODAL: NOVO AGENDAMENTO ===== -->
+<div class="overlay-modal" id="overlayAgendamento">
+  <div class="modal-caixa">
+    <h3>🌹 Novo agendamento</h3>
+    <div class="campo"><label>Cliente</label><select id="campoLeadAgendamento"></select></div>
+    <div class="campo"><label>Tipo</label>
+      <select id="campoTipoAgendamento">
+        <option>Ligação</option><option>Reunião</option><option>Prova / Entrega</option>
+      </select>
+    </div>
+    <div class="campo"><label>Data</label><input type="date" id="campoDataAgendamento"></div>
+    <div class="campo"><label>Hora</label><input type="time" id="campoHoraAgendamento"></div>
+    <div class="modal-acoes">
+      <button class="btn btn-fantasma" id="btnCancelarAgendamento">Cancelar</button>
+      <button class="btn" id="btnSalvarAgendamento">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: EDITAR ETAPAS DO FUNIL ATIVO ===== -->
+<div class="overlay-modal" id="overlayEtapas">
+  <div class="modal-caixa" style="width:min(480px,100%)">
+    <h3>Editar etapas — <span id="etapasFunilNome"></span></h3>
+    <div id="listaEtapasEdit"></div>
+    <div class="campo" style="flex-direction:row;gap:8px;margin-top:10px">
+      <input id="novaEtapaInput" placeholder="Nova etapa...">
+      <button class="btn btn-fantasma" id="btnAddEtapa">+ Adicionar</button>
+    </div>
+    <div class="modal-acoes">
+      <button class="btn btn-fantasma" id="btnCancelarEtapas">Cancelar</button>
+      <button class="btn" id="btnSalvarEtapas">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: MOVER LEAD PARA OUTRO FUNIL ===== -->
+<div class="overlay-modal" id="overlayMoverFunil">
+  <div class="modal-caixa">
+    <h3>Mover cliente para outro funil</h3>
+    <div class="campo"><label>Cliente</label><strong id="moverLeadNome" style="font-size:14px;font-weight:500"></strong></div>
+    <div class="campo"><label>Funil de destino</label><select id="campoFunilDestino"></select></div>
+    <div class="campo"><label>Etapa inicial</label><select id="campoEtapaDestino"></select></div>
+    <div class="modal-acoes">
+      <button class="btn btn-fantasma" id="btnCancelarMover">Cancelar</button>
+      <button class="btn" id="btnConfirmarMover">Mover</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: NOVO FUNIL ===== -->
+<div class="overlay-modal" id="overlayNovoFunil">
+  <div class="modal-caixa" style="width:min(480px,100%)">
+    <h3>Novo funil</h3>
+    <div class="campo">
+      <label>Nome do funil</label>
+      <input id="novoFunilNome" placeholder="Ex: Funil de Atacado">
+    </div>
+    <div class="campo">
+      <label>Modelo de etapas (opcional — você edita depois)</label>
+      <select id="novoFunilModelo">
+        <option value="">Personalizado</option>
+        <option value="vendas">Vendas (boutique)</option>
+        <option value="posvenda">Pós-venda</option>
+        <option value="atacado">Atacado / Revenda</option>
+      </select>
+    </div>
+    <label style="font-size:12px;color:var(--texto-dim);display:block;margin-bottom:6px">Etapas</label>
+    <div id="listaEtapasNovoFunil"></div>
+    <div class="campo" style="flex-direction:row;gap:8px;margin-top:4px">
+      <input id="novoFunilEtapaInput" placeholder="Nova etapa...">
+      <button class="btn btn-fantasma" id="btnAddEtapaNovoFunil">+ Adicionar</button>
+    </div>
+    <div class="modal-acoes">
+      <button class="btn btn-fantasma" id="btnCancelarNovoFunil">Cancelar</button>
+      <button class="btn" id="btnCriarNovoFunil">Criar funil</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: EXCLUIR FUNIL ===== -->
+<div class="overlay-modal" id="overlayExcluirFunil">
+  <div class="modal-caixa">
+    <h3>Excluir funil</h3>
+    <p id="excluirFunilAviso" style="color:var(--texto-dim);font-size:13.5px;margin:0 0 14px;line-height:1.5"></p>
+    <div class="campo" id="campoDestinoExclusao">
+      <label>Mover as clientes para</label>
+      <select id="selectDestinoExclusao"></select>
+    </div>
+    <div class="modal-acoes">
+      <button class="btn btn-fantasma" id="btnCancelarExcluirFunil">Cancelar</button>
+      <button class="btn btn-perigo" id="btnConfirmarExcluirFunil">Excluir funil</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   13. DADOS BASE — FUNIS (boutique Pantoja Intimité)
+   ============================================================ */
+function carregarFunis(){
+  const salvo = localStorage.getItem("pantoja_funis");
+  if(salvo){ try{ return JSON.parse(salvo); }catch(e){} }
+  return [
+    {id:1, nome:"Funil de Vendas", etapas:["Novo contato","Conversa iniciada","Catálogo enviado","Fechando pedido","Venda concluída"]},
+    {id:2, nome:"Pós-venda", etapas:["Pedido enviado","Entregue","Avaliação pedida"]}
+  ];
+}
+function salvarFunis(){ localStorage.setItem("pantoja_funis", JSON.stringify(funis)); }
+let funis = carregarFunis();
+let funilAtivoId = funis[0].id;
+function funilAtivo(){ return funis.find(f=>f.id===funilAtivoId) || funis[0]; }
+function primeiraEtapaDoLead(l){ const f=funis.find(x=>x.id===l.funilId); return f ? f.etapas[0] : null; }
+function ultimaEtapaDoLead(l){ const f=funis.find(x=>x.id===l.funilId); return f ? f.etapas[f.etapas.length-1] : null; }
+
+const modelosFunil = {
+  vendas: ["Novo contato","Conversa iniciada","Catálogo enviado","Fechando pedido","Venda concluída"],
+  posvenda: ["Pedido enviado","Entregue","Avaliação pedida"],
+  atacado: ["Contato inicial","Catálogo de atacado enviado","Negociação","Pedido fechado"]
+};
+
+/* ============================================================
+   14. DADOS BASE — LEADS (clientes)
+   ============================================================ */
+function carregarLeads(){
+  const salvo = localStorage.getItem("pantoja_leads");
+  if(salvo){ try{ return JSON.parse(salvo); }catch(e){} }
+  return [
+    {id:1, nome:"Marina Alves",  empresa:"Cliente final", telefone:"(95) 99123-4501", etapa:"Novo contato",      temperatura:"quente", naoRetornado:true,  atividades:[], funilId:1, naoLidas:0, automacaoPausada:false},
+    {id:2, nome:"Carla Dutra",   empresa:"Cliente final", telefone:"(95) 99123-4502", etapa:"Conversa iniciada", temperatura:"morno",  naoRetornado:true,  atividades:[], funilId:1, naoLidas:2, automacaoPausada:true},
+    {id:3, nome:"Renata Lima",   empresa:"Loja Capricho",  telefone:"(95) 99123-4503", etapa:"Catálogo enviado", temperatura:"quente", naoRetornado:false, atividades:[], funilId:1, naoLidas:0, automacaoPausada:false},
+    {id:4, nome:"Joana Pedro",   empresa:"Cliente final", telefone:"(95) 99123-4504", etapa:"Novo contato",      temperatura:"frio",   naoRetornado:true,  atividades:[], funilId:1, naoLidas:0, automacaoPausada:false},
+    {id:5, nome:"Fernanda Melo", empresa:"Cliente final", telefone:"(95) 99123-4505", etapa:"Fechando pedido",   temperatura:"quente", naoRetornado:false, atividades:[], funilId:1, naoLidas:1, automacaoPausada:false},
+    {id:6, nome:"Bruna Castro",  empresa:"Cliente final", telefone:"(95) 99123-4506", etapa:"Conversa iniciada", temperatura:"morno",  naoRetornado:true,  atividades:[], funilId:1, naoLidas:0, automacaoPausada:false},
+    {id:7, nome:"Aline Souza",   empresa:"Cliente final", telefone:"(95) 99123-4507", etapa:"Venda concluída",   temperatura:"quente", naoRetornado:false, atividades:[], funilId:1, naoLidas:0, automacaoPausada:false},
+    {id:8, nome:"Diana Farias",  empresa:"Cliente final", telefone:"(95) 99123-4508", etapa:"Novo contato",      temperatura:"morno",  naoRetornado:true,  atividades:[], funilId:1, naoLidas:0, automacaoPausada:false},
+  ];
+}
+function salvarLeads(){ localStorage.setItem("pantoja_leads", JSON.stringify(leads)); }
+let leads = carregarLeads();
+
+/* ============================================================
+   15. NAVEGAÇÃO ENTRE TELAS
+   ============================================================ */
+const botoesNav = document.querySelectorAll(".nav button");
+const titulos = {dashboard:"Dashboard", conversas:"Conversas", contatos:"Contatos", agenda:"Agenda", leads:"Funis & Clientes", campanha:"Campanha · Não retornadas", ia:"IA Copiloto"};
+
+botoesNav.forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const alvo = btn.dataset.tela;
+    botoesNav.forEach(b=>b.classList.remove("ativo"));
+    btn.classList.add("ativo");
+    document.querySelectorAll(".vista").forEach(v=>v.classList.remove("ativa"));
+    document.getElementById("vista-"+alvo).classList.add("ativa");
+    document.getElementById("tituloTela").textContent = titulos[alvo];
+    if(alvo==="ia"){ renderizarSugestoes(); renderizarMemoriaIA(); }
+    if(alvo==="contatos") renderizarTabelaContatos();
+  });
+});
+
+/* ============================================================
+   16. DASHBOARD
+   ============================================================ */
+function renderizarDashboard(){
+  document.getElementById("kpiNovos").textContent = leads.filter(l=>l.etapa===primeiraEtapaDoLead(l)).length;
+  document.getElementById("kpiLigacoes").textContent = leads.filter(l=>l.naoRetornado).length + 4;
+  document.getElementById("kpiNaoRetornados").textContent = leads.filter(l=>l.naoRetornado).length;
+
+  const fechados = leads.filter(l=>l.etapa===ultimaEtapaDoLead(l)).length;
+  const conversao = leads.length ? Math.round((fechados/leads.length)*100) : 0;
+  document.getElementById("kpiConversao").textContent = conversao+"%";
+
+  const grafico = document.getElementById("graficoBarras");
+  grafico.innerHTML = "";
+  const maiorValor = Math.max(1, ...funis.map(f=>leads.filter(l=>l.funilId===f.id).length));
+  funis.forEach(f=>{
+    const qtd = leads.filter(l=>l.funilId===f.id).length;
+    const col = document.createElement("div");
+    col.className = "col";
+    col.innerHTML = "<i style=\"height:"+((qtd/maiorValor*100)||2)+"%\"></i><span>"+f.nome+"</span>";
+    grafico.appendChild(col);
+  });
+
+  const lista = document.getElementById("listaAtividade");
+  const cores = {quente:"var(--vermelho)", morno:"var(--ambar)", frio:"var(--texto-dim)"};
+  lista.innerHTML = leads.slice(0,6).map(l=>`
+    <div class="item-simples">
+      <span class="pt" style="background:${cores[l.temperatura]}"></span>
+      <span class="nome">${l.nome} — ${l.etapa}</span>
+      <span class="quando">${l.empresa}</span>
+    </div>`).join("");
+}
+
+/* ============================================================
+   17. FUNIS — abas (renomear / excluir / contagem)
+   ============================================================ */
+function renderizarFunilTabs(){
+  const caixa = document.getElementById("funilTabs");
+  caixa.innerHTML = funis.map(f=>{
+    const qtd = leads.filter(l=>l.funilId===f.id).length;
+    return `
+    <div class="funil-tab ${f.id===funilAtivoId?'ativo':''}" data-id="${f.id}">
+      <span class="nome-funil">${f.nome}</span>
+      <span class="contagem-tab">${qtd}</span>
+      <button class="icone-mini" data-acao="renomear" title="Renomear funil">✎</button>
+      <button class="icone-mini" data-acao="excluir" title="Excluir funil">🗑</button>
+    </div>`;
+  }).join("");
+
+  caixa.querySelectorAll(".funil-tab").forEach(tab=>{
+    const id = Number(tab.dataset.id);
+    tab.querySelector(".nome-funil").addEventListener("click", ()=>{ funilAtivoId = id; renderizarKanban(); });
+    tab.querySelector('[data-acao="renomear"]').addEventListener("click", e=>{
+      e.stopPropagation();
+      const funil = funis.find(f=>f.id===id);
+      const novoNome = prompt("Novo nome do funil:", funil.nome);
+      if(novoNome && novoNome.trim()){ funil.nome = novoNome.trim(); salvarFunis(); renderizarKanban(); renderizarDashboard(); }
+    });
+    tab.querySelector('[data-acao="excluir"]').addEventListener("click", e=>{
+      e.stopPropagation();
+      pedirExclusaoFunil(id);
+    });
+  });
+}
+
+/* ============================================================
+   17B. MODAL — NOVO FUNIL
+   ============================================================ */
+let etapasNovoFunil = [];
+
+document.getElementById("btnNovoFunil").addEventListener("click", ()=>{
+  document.getElementById("novoFunilNome").value = "";
+  document.getElementById("novoFunilModelo").value = "";
+  etapasNovoFunil = ["Etapa 1"];
+  renderizarListaEtapasNovoFunil();
+  document.getElementById("overlayNovoFunil").classList.add("aberto");
+  document.getElementById("novoFunilNome").focus();
+});
+
+document.getElementById("novoFunilModelo").addEventListener("change", function(){
+  if(this.value && modelosFunil[this.value]){
+    etapasNovoFunil = modelosFunil[this.value].slice();
+    renderizarListaEtapasNovoFunil();
+  }
+});
+
+function renderizarListaEtapasNovoFunil(){
+  const caixa = document.getElementById("listaEtapasNovoFunil");
+  caixa.innerHTML = etapasNovoFunil.map((et,i)=>`
+    <div class="linha-etapa-edit">
+      <input value="${et}" data-idx="${i}">
+      <button class="icone-mini" data-idx="${i}" title="Remover etapa">✕</button>
+    </div>`).join("");
+
+  caixa.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", ()=>{ etapasNovoFunil[Number(inp.dataset.idx)] = inp.value; });
+  });
+  caixa.querySelectorAll("button").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      etapasNovoFunil.splice(Number(btn.dataset.idx),1);
+      renderizarListaEtapasNovoFunil();
+    });
+  });
+}
+
+document.getElementById("btnAddEtapaNovoFunil").addEventListener("click", ()=>{
+  const input = document.getElementById("novoFunilEtapaInput");
+  const valor = input.value.trim();
+  if(!valor) return;
+  etapasNovoFunil.push(valor);
+  input.value = "";
+  renderizarListaEtapasNovoFunil();
+});
+document.getElementById("novoFunilEtapaInput").addEventListener("keydown", e=>{
+  if(e.key==="Enter"){ e.preventDefault(); document.getElementById("btnAddEtapaNovoFunil").click(); }
+});
+
+document.getElementById("btnCancelarNovoFunil").addEventListener("click", ()=> document.getElementById("overlayNovoFunil").classList.remove("aberto"));
+document.getElementById("overlayNovoFunil").addEventListener("click", e=>{ if(e.target.id==="overlayNovoFunil") document.getElementById("overlayNovoFunil").classList.remove("aberto"); });
+
+document.getElementById("btnCriarNovoFunil").addEventListener("click", ()=>{
+  const nome = document.getElementById("novoFunilNome").value.trim();
+  if(!nome){ alert("Dê um nome para o funil."); return; }
+  const etapas = etapasNovoFunil.map(s=>s.trim()).filter(Boolean);
+  if(etapas.length===0){ alert("Adicione ao menos uma etapa."); return; }
+
+  const novo = {id: Date.now(), nome: nome, etapas: etapas};
+  funis.push(novo);
+  funilAtivoId = novo.id;
+  salvarFunis();
+  document.getElementById("overlayNovoFunil").classList.remove("aberto");
+  renderizarKanban(); renderizarDashboard();
+});
+
+/* ============================================================
+   17C. MODAL — EXCLUIR FUNIL
+   ============================================================ */
+let funilParaExcluirId = null;
+
+function pedirExclusaoFunil(id){
+  if(funis.length<=1){ alert("Você precisa manter pelo menos um funil."); return; }
+  funilParaExcluirId = id;
+  const funil = funis.find(f=>f.id===id);
+  const qtdLeads = leads.filter(l=>l.funilId===id).length;
+  const outros = funis.filter(f=>f.id!==id);
+
+  document.getElementById("excluirFunilAviso").textContent = qtdLeads>0
+    ? "O funil \""+funil.nome+"\" tem "+qtdLeads+" cliente(s). Escolha para onde elas vão antes de excluir."
+    : "Tem certeza que deseja excluir o funil \""+funil.nome+"\"? Ele não tem clientes.";
+
+  const campoDestino = document.getElementById("campoDestinoExclusao");
+  if(qtdLeads>0){
+    campoDestino.style.display = "flex";
+    document.getElementById("selectDestinoExclusao").innerHTML = outros.map(f=>`<option value="${f.id}">${f.nome}</option>`).join("");
+  } else {
+    campoDestino.style.display = "none";
+  }
+
+  document.getElementById("overlayExcluirFunil").classList.add("aberto");
+}
+
+document.getElementById("btnCancelarExcluirFunil").addEventListener("click", ()=>{
+  funilParaExcluirId = null;
+  document.getElementById("overlayExcluirFunil").classList.remove("aberto");
+});
+document.getElementById("overlayExcluirFunil").addEventListener("click", e=>{
+  if(e.target.id==="overlayExcluirFunil"){ funilParaExcluirId = null; document.getElementById("overlayExcluirFunil").classList.remove("aberto"); }
+});
+
+document.getElementById("btnConfirmarExcluirFunil").addEventListener("click", ()=>{
+  if(funilParaExcluirId===null) return;
+  const id = funilParaExcluirId;
+  const funil = funis.find(f=>f.id===id);
+  const leadsDoFunil = leads.filter(l=>l.funilId===id);
+
+  let destino = null;
+  if(leadsDoFunil.length>0){
+    const destinoId = Number(document.getElementById("selectDestinoExclusao").value);
+    destino = funis.find(f=>f.id===destinoId);
+  }
+
+  funis = funis.filter(f=>f.id!==id);
+  if(destino){
+    leadsDoFunil.forEach(l=>{
+      l.funilId = destino.id;
+      l.etapa = destino.etapas[0];
+      registrarAtividade(l.id, "Funil \""+funil.nome+"\" foi excluído — cliente movida para \""+destino.nome+"\".");
+    });
+  }
+  if(funilAtivoId===id) funilAtivoId = funis[0].id;
+
+  salvarFunis(); salvarLeads();
+  funilParaExcluirId = null;
+  document.getElementById("overlayExcluirFunil").classList.remove("aberto");
+  renderizarKanban(); renderizarDashboard();
+});
+
+/* ============================================================
+   18. MODAL — editar etapas do funil ativo
+   ============================================================ */
+let etapasEmEdicao = [];
+
+document.getElementById("btnEditarEtapas").addEventListener("click", ()=>{
+  const funil = funilAtivo();
+  document.getElementById("etapasFunilNome").textContent = funil.nome;
+  etapasEmEdicao = funil.etapas.slice();
+  renderizarListaEtapasEdit();
+  document.getElementById("overlayEtapas").classList.add("aberto");
+});
+
+function renderizarListaEtapasEdit(){
+  const caixa = document.getElementById("listaEtapasEdit");
+  caixa.innerHTML = etapasEmEdicao.map((et,i)=>`
+    <div class="linha-etapa-edit">
+      <input value="${et}" data-idx="${i}">
+      <button class="icone-mini" data-idx="${i}" title="Remover etapa">✕</button>
+    </div>`).join("");
+
+  caixa.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", ()=>{ etapasEmEdicao[Number(inp.dataset.idx)] = inp.value; });
+  });
+  caixa.querySelectorAll("button").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      etapasEmEdicao.splice(Number(btn.dataset.idx),1);
+      renderizarListaEtapasEdit();
+    });
+  });
+}
+
+document.getElementById("btnAddEtapa").addEventListener("click", ()=>{
+  const input = document.getElementById("novaEtapaInput");
+  const valor = input.value.trim();
+  if(!valor) return;
+  etapasEmEdicao.push(valor);
+  input.value = "";
+  renderizarListaEtapasEdit();
+});
+document.getElementById("novaEtapaInput").addEventListener("keydown", e=>{
+  if(e.key==="Enter"){ e.preventDefault(); document.getElementById("btnAddEtapa").click(); }
+});
+
+document.getElementById("btnCancelarEtapas").addEventListener("click", ()=> document.getElementById("overlayEtapas").classList.remove("aberto"));
+document.getElementById("overlayEtapas").addEventListener("click", e=>{ if(e.target.id==="overlayEtapas") document.getElementById("overlayEtapas").classList.remove("aberto"); });
+
+document.getElementById("btnSalvarEtapas").addEventListener("click", ()=>{
+  const novasEtapas = etapasEmEdicao.map(s=>s.trim()).filter(Boolean);
+  if(novasEtapas.length===0){ alert("O funil precisa ter ao menos uma etapa."); return; }
+
+  const funil = funilAtivo();
+  funil.etapas = novasEtapas;
+
+  leads.filter(l=>l.funilId===funil.id && !novasEtapas.includes(l.etapa)).forEach(l=>{ l.etapa = novasEtapas[0]; });
+
+  salvarFunis(); salvarLeads();
+  document.getElementById("overlayEtapas").classList.remove("aberto");
+  renderizarKanban(); renderizarDashboard();
+});
+
+/* ============================================================
+   19. MODAL — mover lead para outro funil
+   ============================================================ */
+let leadParaMover = null;
+
+function abrirModalMover(leadId){
+  if(funis.length<=1){ alert("Crie outro funil primeiro para poder mover clientes entre funis."); return; }
+  leadParaMover = leads.find(l=>l.id===leadId);
+  document.getElementById("moverLeadNome").textContent = leadParaMover.nome;
+
+  const selectFunil = document.getElementById("campoFunilDestino");
+  selectFunil.innerHTML = funis.filter(f=>f.id!==leadParaMover.funilId).map(f=>`<option value="${f.id}">${f.nome}</option>`).join("");
+
+  atualizarEtapasDestino();
+  document.getElementById("overlayMoverFunil").classList.add("aberto");
+}
+function atualizarEtapasDestino(){
+  const funilId = Number(document.getElementById("campoFunilDestino").value);
+  const funil = funis.find(f=>f.id===funilId);
+  document.getElementById("campoEtapaDestino").innerHTML = funil.etapas.map(e=>`<option value="${e}">${e}</option>`).join("");
+}
+document.getElementById("campoFunilDestino").addEventListener("change", atualizarEtapasDestino);
+document.getElementById("btnCancelarMover").addEventListener("click", ()=> document.getElementById("overlayMoverFunil").classList.remove("aberto"));
+document.getElementById("overlayMoverFunil").addEventListener("click", e=>{ if(e.target.id==="overlayMoverFunil") document.getElementById("overlayMoverFunil").classList.remove("aberto"); });
+
+document.getElementById("btnConfirmarMover").addEventListener("click", ()=>{
+  const funilId = Number(document.getElementById("campoFunilDestino").value);
+  const etapa = document.getElementById("campoEtapaDestino").value;
+  const funilDestino = funis.find(f=>f.id===funilId);
+
+  leadParaMover.funilId = funilId;
+  leadParaMover.etapa = etapa;
+  registrarAtividade(leadParaMover.id, "Movida para o funil \""+funilDestino.nome+"\", etapa \""+etapa+"\".");
+  salvarLeads();
+
+  document.getElementById("overlayMoverFunil").classList.remove("aberto");
+  renderizarKanban(); renderizarDashboard();
+});
+
+/* ============================================================
+   20. KANBAN do funil ativo
+   ============================================================ */
+function renderizarKanban(){
+  renderizarFunilTabs();
+  const funil = funilAtivo();
+  const kanban = document.getElementById("kanban");
+  kanban.innerHTML = "";
+  kanban.style.gridTemplateColumns = "repeat("+funil.etapas.length+", minmax(210px,1fr))";
+
+  funil.etapas.forEach(etapa=>{
+    const doEtapa = leads.filter(l=>l.funilId===funil.id && l.etapa===etapa);
+    const coluna = document.createElement("div");
+    coluna.className = "coluna";
+    coluna.dataset.etapa = etapa;
+    coluna.innerHTML = "<h4>"+etapa+" <em>"+doEtapa.length+"</em></h4>";
+
+    doEtapa.forEach(l=>{
+      const card = document.createElement("div");
+      card.className = "card-lead";
+      card.draggable = true;
+      card.dataset.id = l.id;
+      card.innerHTML = `
+        <b>${l.nome}</b>
+        <div class="empresa">${l.empresa}</div>
+        <div class="rodape">
+          <span class="tag ${l.temperatura}">${l.temperatura}</span>
+          <span style="font-size:11px;color:var(--texto-dim)">${l.telefone}</span>
+        </div>
+        <div class="linha-mover">
+          <button class="btn-mover">↔ mover de funil</button>
+        </div>`;
+      card.addEventListener("dragstart", e=>{ e.dataTransfer.setData("id", l.id); });
+      card.addEventListener("click", ()=> abrirDrawer(l.id));
+      card.querySelector(".btn-mover").addEventListener("click", e=>{
+        e.stopPropagation();
+        abrirModalMover(l.id);
+      });
+      coluna.appendChild(card);
+    });
+
+    coluna.addEventListener("dragover", e=>{ e.preventDefault(); coluna.classList.add("arrastando-sobre"); });
+    coluna.addEventListener("dragleave", ()=> coluna.classList.remove("arrastando-sobre"));
+    coluna.addEventListener("drop", e=>{
+      e.preventDefault();
+      coluna.classList.remove("arrastando-sobre");
+      const id = Number(e.dataTransfer.getData("id"));
+      const lead = leads.find(l=>l.id===id);
+      if(lead && lead.funilId===funil.id){ lead.etapa = etapa; salvarLeads(); renderizarKanban(); renderizarDashboard(); }
+    });
+
+    kanban.appendChild(coluna);
+  });
+}
+
+function criarNovoLead(){
+  const nome = prompt("Nome da cliente:");
+  if(!nome) return;
+  const empresa = prompt("Empresa (ou \"Cliente final\"):") || "Cliente final";
+  const telefone = prompt("Telefone:") || "—";
+  const funil = funilAtivo();
+  leads.push({id: Date.now(), nome: nome, empresa: empresa, telefone: telefone, etapa: funil.etapas[0], temperatura:"morno", naoRetornado:true, atividades:[], funilId: funil.id, naoLidas:0, automacaoPausada:false});
+  salvarLeads(); renderizarKanban(); renderizarDashboard(); montarFila(); renderizarListaConversas(); renderizarTabelaContatos();
+}
+document.getElementById("btnNovoLead").addEventListener("click", criarNovoLead);
+document.getElementById("btnNovoLeadContatos").addEventListener("click", criarNovoLead);
+
+/* ============================================================
+   21. DISCADOR AUTOMÁTICO (simulação)
+   Para ligar de verdade, troque discarNumeroReal() por uma
+   chamada ao seu backend, que por trás usa um provedor de
+   telefonia (ex: Twilio Voice). Nunca discar direto do navegador.
+   ============================================================ */
+let filaDiscagem = [];
+let indiceAtual = -1;
+let discagemAtiva = false;
+let discagemPausada = false;
+let timerDiscagem = null;
+
+function montarFila(){
+  filaDiscagem = leads.filter(l=>l.naoRetornado);
+  document.getElementById("contadorFila").textContent = filaDiscagem.length;
+  renderizarListaFila();
+}
+
+function renderizarListaFila(){
+  const caixa = document.getElementById("listaFila");
+  caixa.innerHTML = filaDiscagem.map((l,i)=>{
+    let resultado = "";
+    if(l._resultado==="atendeu") resultado = '<span class="resultado">✅</span>';
+    if(l._resultado==="perdeu")  resultado = '<span class="resultado">❌</span>';
+    return `
+      <div class="fila-item ${i===indiceAtual?'atual':''} ${l._resultado?'feita':''}">
+        <div class="bolinha">${i+1}</div>
+        <div class="txt"><b>${l.nome}</b><small>${l.empresa} · ${l.telefone}</small></div>
+        ${resultado}
+      </div>`;
+  }).join("");
+}
+
+function discarNumeroReal(lead, aoAtender, aoNaoAtender){
+  const vaiAtender = Math.random() > 0.45;
+  const tempoToque = 1800 + Math.random()*1600;
+  setTimeout(()=>{ vaiAtender ? aoAtender() : aoNaoAtender(); }, tempoToque);
+}
+
+function discarProximo(){
+  indiceAtual++;
+  if(indiceAtual >= filaDiscagem.length){ encerrarDiscagem(true); return; }
+
+  const lead = filaDiscagem[indiceAtual];
+  const avatar = document.getElementById("avatarDiscagem");
+  const chip = document.getElementById("statusChip");
+  const onda = document.getElementById("onda");
+
+  document.getElementById("nomeAtual").textContent = lead.nome;
+  document.getElementById("empresaAtual").textContent = lead.empresa + " · " + lead.telefone;
+  avatar.textContent = lead.nome.split(" ").map(p=>p[0]).slice(0,2).join("");
+  avatar.className = "avatar-grande discando";
+  chip.className = "status-chip discando"; chip.textContent = "DISCANDO...";
+  onda.className = "onda parado";
+  renderizarListaFila();
+
+  setTimeout(()=>{
+    avatar.className = "avatar-grande tocando";
+    chip.className = "status-chip tocando"; chip.textContent = "TOCANDO...";
+    onda.className = "onda";
+  }, 500);
+
+  discarNumeroReal(lead,
+    ()=>{
+      lead._resultado = "atendeu";
+      avatar.className = "avatar-grande atendeu";
+      chip.className = "status-chip atendeu"; chip.textContent = "ATENDEU";
+      onda.className = "onda parado";
+      renderizarListaFila();
+      registrarAtividade(lead.id, "Ligação automática: cliente atendeu.");
+      timerDiscagem = setTimeout(()=>{ if(discagemAtiva && !discagemPausada) discarProximo(); }, 2200);
+    },
+    ()=>{
+      lead._resultado = "perdeu";
+      avatar.className = "avatar-grande perdeu";
+      chip.className = "status-chip perdeu"; chip.textContent = "NÃO ATENDEU";
+      onda.className = "onda parado";
+      renderizarListaFila();
+      registrarAtividade(lead.id, "Ligação automática: não atendeu.");
+      timerDiscagem = setTimeout(()=>{ if(discagemAtiva && !discagemPausada) discarProximo(); }, 1400);
+    }
+  );
+}
+
+function encerrarDiscagem(terminouFila){
+  discagemAtiva = false; discagemPausada = false;
+  clearTimeout(timerDiscagem);
+  document.getElementById("btnIniciarDiscagem").disabled = false;
+  document.getElementById("btnPausarDiscagem").disabled = true;
+  document.getElementById("btnPularDiscagem").disabled = true;
+  if(terminouFila){
+    document.getElementById("nomeAtual").textContent = "Fila concluída";
+    document.getElementById("empresaAtual").textContent = "Todas as clientes da campanha foram contatadas.";
+    document.getElementById("statusChip").className = "status-chip idle";
+    document.getElementById("statusChip").textContent = "CONCLUÍDO";
+    document.getElementById("avatarDiscagem").className = "avatar-grande";
+    document.getElementById("avatarDiscagem").textContent = "✓";
+  }
+}
+
+document.getElementById("btnIniciarDiscagem").addEventListener("click", ()=>{
+  if(filaDiscagem.length===0){ alert("Não há clientes na fila de não retornadas."); return; }
+  discagemAtiva = true; discagemPausada = false; indiceAtual = -1;
+  filaDiscagem.forEach(l=>delete l._resultado);
+  document.getElementById("btnIniciarDiscagem").disabled = true;
+  document.getElementById("btnPausarDiscagem").disabled = false;
+  document.getElementById("btnPularDiscagem").disabled = false;
+  document.getElementById("btnPausarDiscagem").textContent = "⏸ Pausar";
+  discarProximo();
+});
+
+document.getElementById("btnPausarDiscagem").addEventListener("click", function(){
+  discagemPausada = !discagemPausada;
+  this.textContent = discagemPausada ? "▶ Retomar" : "⏸ Pausar";
+  if(!discagemPausada){
+    document.getElementById("statusChip").textContent = "DISCANDO...";
+  } else {
+    clearTimeout(timerDiscagem);
+    document.getElementById("statusChip").textContent = "PAUSADO";
+    document.getElementById("statusChip").className = "status-chip idle";
+  }
+});
+
+document.getElementById("btnPularDiscagem").addEventListener("click", ()=>{
+  clearTimeout(timerDiscagem);
+  discarProximo();
+});
+
+/* ============================================================
+   22. IA COPILOTO — sugestões por regra
+   ============================================================ */
+function gerarSugestoesPorRegra(){
+  const sugestoes = [];
+  const naoRet = leads.filter(l=>l.naoRetornado);
+  const quentes = leads.filter(l=>l.temperatura==="quente" && l.etapa!==ultimaEtapaDoLead(l));
+  const parados = leads.filter(l=>{
+    const f = funis.find(x=>x.id===l.funilId);
+    if(!f || f.etapas.length<3) return false;
+    const meio = f.etapas.slice(1,-1);
+    return meio.includes(l.etapa);
+  });
+
+  if(naoRet.length) sugestoes.push({
+    rotulo:"Prioridade do dia",
+    texto:"Você tem "+naoRet.length+" cliente(s) sem retorno. Rodar a discagem automática agora pode recuperar contatos antes que esfriem.",
+    acao:"Ir para Não retornadas →"
+  });
+  if(quentes.length) sugestoes.push({
+    rotulo:"Clientes quentes",
+    texto:quentes.length+" cliente(s) estão marcadas como quentes e ainda não chegaram na última etapa do funil. Priorize o contato com elas hoje.",
+    acao:"Ver nos Funis →"
+  });
+  if(parados.length) sugestoes.push({
+    rotulo:"Risco de esfriar",
+    texto:parados.length+" cliente(s) estão no meio do funil — considere avançar ou reagendar contato com elas.",
+    acao:"Revisar etapas →"
+  });
+  const taxaGeral = leads.length ? Math.round((leads.filter(l=>l.etapa===ultimaEtapaDoLead(l)).length/leads.length)*100) : 0;
+  sugestoes.push({
+    rotulo:"Taxa de conversão",
+    texto:"Sua conversão geral é de "+taxaGeral+"%. Comparar por funil ajuda a achar o que está funcionando melhor.",
+    acao:"Ver dashboard →"
+  });
+  return sugestoes;
+}
+
+function renderizarSugestoes(){
+  const grade = document.getElementById("gradeSugestoes");
+  const sugestoes = gerarSugestoesPorRegra();
+  grade.innerHTML = sugestoes.map(s=>`
+    <div class="sugestao">
+      <div class="rotulo">${s.rotulo}</div>
+      <p>${s.texto}</p>
+      <div class="acao">${s.acao}</div>
+    </div>`).join("");
+
+  document.getElementById("dicaLateral").textContent = sugestoes[0] ? sugestoes[0].texto : "Tudo em dia por aqui!";
+}
+
+/* ============================================================
+   22B. MEMÓRIA DA IA — auto-aprendizado local
+   ---------------------------------------------------------------
+   Cada mensagem enviada a uma cliente e cada pergunta feita à IA
+   aqui é "aprendida": conta como interação e suas palavras-chave
+   entram numa contagem salva no navegador. Isso NÃO é uma rede
+   neural de verdade — é a base de dados que, no dia de conectar
+   uma IA real por trás (com backend e chave de API), alimentaria
+   o treino dela.
+   ============================================================ */
+function carregarMemoriaIA(){
+  const salvo = localStorage.getItem("pantoja_memoria_ia");
+  if(salvo){ try{ return JSON.parse(salvo); }catch(e){} }
+  return {interacoes:0, treinos:0, palavras:{}};
+}
+function salvarMemoriaIA(mem){ localStorage.setItem("pantoja_memoria_ia", JSON.stringify(mem)); }
+
+const PALAVRAS_IGNORADAS = new Set(["que","para","com","uma","umas","uns","um","isso","esse","essa","vou","voce","nao","sim","mais","muito","tambem","sobre","ainda","ja","so","tem","ter","esta","sao","ser","seu","sua","meu","minha","dos","das","por","como","mas","ele","ela","eles","elas","nos","aqui","ali","hoje","ola","obrigado","obrigada","pode","posso","vai","foi","era","aos","nas","tudo","bem","bom","boa"]);
+
+function extrairPalavrasChave(texto){
+  const semAcento = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const limpo = semAcento.replace(/[^a-z0-9\s]/g," ");
+  return limpo.split(/\s+/).filter(p=> p.length>3 && !PALAVRAS_IGNORADAS.has(p));
+}
+
+function aprenderComTexto(texto){
+  const mem = carregarMemoriaIA();
+  mem.interacoes = mem.interacoes + 1;
+  extrairPalavrasChave(texto).forEach(p=>{ mem.palavras[p] = (mem.palavras[p]||0) + 1; });
+  salvarMemoriaIA(mem);
+  renderizarMemoriaIA();
+}
+
+function salvarExemploTreino(pergunta, resposta){
+  const salvo = localStorage.getItem("pantoja_treinamento_ia");
+  const dataset = salvo ? JSON.parse(salvo) : [];
+  dataset.push({pergunta: pergunta, resposta: resposta, quando: new Date().toISOString()});
+  localStorage.setItem("pantoja_treinamento_ia", JSON.stringify(dataset));
+
+  const mem = carregarMemoriaIA();
+  mem.treinos = mem.treinos + 1;
+  salvarMemoriaIA(mem);
+  renderizarMemoriaIA();
+}
+
+function renderizarMemoriaIA(){
+  const mem = carregarMemoriaIA();
+  document.getElementById("qtdInteracoes").textContent = mem.interacoes;
+  document.getElementById("qtdTreinos").textContent = mem.treinos;
+
+  let nivel = "Iniciante";
+  if(mem.interacoes>=40) nivel = "Avançada";
+  else if(mem.interacoes>=20) nivel = "Intermediária";
+  else if(mem.interacoes>=8) nivel = "Em desenvolvimento";
+  document.getElementById("nivelIA").textContent = nivel;
+  document.getElementById("barraNivelIA").style.width = Math.min(100, mem.interacoes*3) + "%";
+
+  const top = Object.entries(mem.palavras).sort((a,b)=> b[1]-a[1]).slice(0,8);
+  const caixa = document.getElementById("temasAprendidos");
+  caixa.innerHTML = top.length
+    ? top.map(e=> '<span class="chip-tema">'+e[0]+' · '+e[1]+'</span>').join("")
+    : '<span style="color:var(--texto-dim);font-size:12px">Ainda sem temas suficientes — converse mais com as clientes para a IA aprender.</span>';
+}
+
+function responderChatIA(pergunta){
+  const p = pergunta.toLowerCase();
+
+  if(p.includes("aprend") || p.includes("memoria") || p.includes("memória")){
+    const mem = carregarMemoriaIA();
+    const top = Object.entries(mem.palavras).sort((a,b)=> b[1]-a[1]).slice(0,3).map(e=>e[0]);
+    if(mem.interacoes===0) return "Ainda não tenho interações suficientes pra te dizer o que aprendi. Converse com algumas clientes na aba Conversas primeiro.";
+    const txtTemas = top.length ? " Os temas que mais aparecem são: "+top.join(", ")+"." : "";
+    return "Já analisei "+mem.interacoes+" interação(ões) e guardei "+mem.treinos+" exemplo(s) marcado(s) como treino."+txtTemas;
+  }
+  if(p.includes("ligar") || p.includes("prioridade")){
+    const naoRet = leads.filter(l=>l.naoRetornado);
+    return naoRet.length
+      ? "Comece pelas "+naoRet.length+" clientes não retornadas: "+naoRet.slice(0,3).map(l=>l.nome).join(", ")+(naoRet.length>3?"...":"")+". Posso te levar pra fila de discagem."
+      : "Não há clientes pendentes de retorno agora. Bom trabalho!";
+  }
+  if(p.includes("conver")){
+    const conversao = leads.length ? Math.round((leads.filter(l=>l.etapa===ultimaEtapaDoLead(l)).length/leads.length)*100) : 0;
+    return "Sua taxa de conversão atual é "+conversao+"%.";
+  }
+  return "Por enquanto eu respondo com base em regras simples sobre suas clientes e no que já observei nas conversas. Quando conectarmos uma IA real aqui, eu vou entender perguntas mais abertas.";
+}
+
+document.getElementById("btnEnviarChat").addEventListener("click", enviarPerguntaChat);
+document.getElementById("chatInput").addEventListener("keydown", e=>{ if(e.key==="Enter") enviarPerguntaChat(); });
+
+function enviarPerguntaChat(){
+  const input = document.getElementById("chatInput");
+  const texto = input.value.trim();
+  if(!texto) return;
+  const corpo = document.getElementById("chatCorpo");
+  corpo.insertAdjacentHTML("beforeend", '<div class="bolha-chat eu">'+texto+'</div>');
+  input.value = "";
+  corpo.scrollTop = corpo.scrollHeight;
+
+  aprenderComTexto(texto);
+
+  setTimeout(()=>{
+    corpo.insertAdjacentHTML("beforeend", '<div class="bolha-chat ia">'+responderChatIA(texto)+'</div>');
+    corpo.scrollTop = corpo.scrollHeight;
+  }, 500);
+}
+
+/* ============================================================
+   23. AGENDA — compromissos
+   ============================================================ */
+function carregarAgendamentos(){
+  const salvo = localStorage.getItem("pantoja_agendamentos");
+  if(salvo){ try{ return JSON.parse(salvo); }catch(e){} }
+  const hoje = new Date().toISOString().slice(0,10);
+  return [
+    {id:1, leadId:1, titulo:"Ligação de retorno", tipo:"Ligação", data:hoje, hora:"10:30", status:"Pendente"},
+    {id:2, leadId:3, titulo:"Reunião sobre pedido", tipo:"Reunião", data:hoje, hora:"14:00", status:"Pendente"},
+    {id:3, leadId:5, titulo:"Entrega combinada", tipo:"Prova / Entrega", data:hoje, hora:"16:00", status:"Concluído"},
+  ];
+}
+function salvarAgendamentos(){ localStorage.setItem("pantoja_agendamentos", JSON.stringify(agendamentos)); }
+let agendamentos = carregarAgendamentos();
+
+const iconesTipo = {"Ligação":"📞","Reunião":"🤝","Prova / Entrega":"🌹"};
+
+function formatarDataLegivel(iso){
+  const hoje = new Date().toISOString().slice(0,10);
+  if(iso===hoje) return "Hoje";
+  const d = new Date(iso+"T00:00:00");
+  return d.toLocaleDateString("pt-BR",{weekday:"long", day:"2-digit", month:"long"});
+}
+
+function renderizarAgenda(){
+  const caixa = document.getElementById("listaAgenda");
+  if(!caixa) return;
+  if(agendamentos.length===0){ caixa.innerHTML = '<div class="vazio">🌹 Nenhum agendamento ainda. Clique em "Novo agendamento".</div>'; return; }
+
+  const ordenados = agendamentos.slice().sort((a,b)=> (a.data+a.hora).localeCompare(b.data+b.hora));
+  let ultimaData = "";
+  let html = "";
+  ordenados.forEach(a=>{
+    const lead = leads.find(l=>l.id===a.leadId);
+    if(a.data !== ultimaData){
+      html += '<div class="agenda-dia">'+formatarDataLegivel(a.data)+'</div>';
+      ultimaData = a.data;
+    }
+    html += `
+      <div class="compromisso">
+        <div class="hora-box">${a.hora}</div>
+        <div class="info">
+          <b>${a.titulo}</b>
+          <small>${iconesTipo[a.tipo]||"🌹"} ${a.tipo} · ${lead ? lead.nome+" — "+lead.empresa : "Cliente removida"}</small>
+        </div>
+        <span class="status-pill ${a.status}">${a.status}</span>
+      </div>`;
+  });
+  caixa.innerHTML = html;
+}
+
+function abrirModalAgendamento(leadIdPreSelecionado){
+  const select = document.getElementById("campoLeadAgendamento");
+  select.innerHTML = leads.map(l=>`<option value="${l.id}">${l.nome} — ${l.empresa}</option>`).join("");
+  if(leadIdPreSelecionado) select.value = leadIdPreSelecionado;
+  document.getElementById("campoDataAgendamento").value = new Date().toISOString().slice(0,10);
+  document.getElementById("campoHoraAgendamento").value = "09:00";
+  document.getElementById("overlayAgendamento").classList.add("aberto");
+}
+function fecharModalAgendamento(){ document.getElementById("overlayAgendamento").classList.remove("aberto"); }
+
+document.getElementById("btnNovoAgendamento").addEventListener("click", ()=> abrirModalAgendamento());
+document.getElementById("btnCancelarAgendamento").addEventListener("click", fecharModalAgendamento);
+document.getElementById("overlayAgendamento").addEventListener("click", e=>{ if(e.target.id==="overlayAgendamento") fecharModalAgendamento(); });
+
+document.getElementById("btnSalvarAgendamento").addEventListener("click", ()=>{
+  const leadId = Number(document.getElementById("campoLeadAgendamento").value);
+  const tipo = document.getElementById("campoTipoAgendamento").value;
+  const data = document.getElementById("campoDataAgendamento").value;
+  const hora = document.getElementById("campoHoraAgendamento").value;
+  if(!data || !hora){ alert("Preencha data e hora."); return; }
+
+  const lead = leads.find(l=>l.id===leadId);
+  agendamentos.push({id:Date.now(), leadId:leadId, titulo:tipo+" com "+(lead?lead.nome:""), tipo:tipo, data:data, hora:hora, status:"Pendente"});
+  salvarAgendamentos();
+
+  registrarAtividade(leadId, "Agendamento criado: "+tipo+" em "+formatarDataLegivel(data)+" às "+hora);
+
+  fecharModalAgendamento();
+  renderizarAgenda();
+  if(leadAtualDrawer && leadAtualDrawer.id===leadId) renderizarAgendaDoLead();
+});
+
+/* ============================================================
+   24. DRAWER — painel de detalhe do lead
+   ============================================================ */
+let leadAtualDrawer = null;
+
+function registrarAtividade(leadId, texto){
+  const lead = leads.find(l=>l.id===leadId);
+  if(!lead) return;
+  if(!lead.atividades) lead.atividades = [];
+  lead.atividades.unshift({texto: texto, quando: new Date().toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})});
+  salvarLeads();
+}
+
+function abrirDrawer(id){
+  leadAtualDrawer = leads.find(l=>l.id===id);
+  if(!leadAtualDrawer) return;
+
+  document.getElementById("drawerNome").textContent = leadAtualDrawer.nome;
+  document.getElementById("drawerEmpresa").textContent = leadAtualDrawer.empresa;
+  document.getElementById("drawerTelefone").textContent = leadAtualDrawer.telefone;
+  document.getElementById("drawerEtapa").textContent = leadAtualDrawer.etapa;
+  document.getElementById("drawerTemperatura").textContent = leadAtualDrawer.temperatura;
+
+  renderizarTimelineLead();
+  renderizarAgendaDoLead();
+
+  document.getElementById("overlayDrawer").classList.add("aberto");
+  document.getElementById("drawerLead").classList.add("aberto");
+}
+function fecharDrawer(){
+  document.getElementById("overlayDrawer").classList.remove("aberto");
+  document.getElementById("drawerLead").classList.remove("aberto");
+}
+document.getElementById("btnFecharDrawer").addEventListener("click", fecharDrawer);
+document.getElementById("overlayDrawer").addEventListener("click", fecharDrawer);
+
+document.querySelectorAll(".drawer-tabs button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".drawer-tabs button").forEach(b=>b.classList.remove("ativo"));
+    btn.classList.add("ativo");
+    document.querySelectorAll(".drawer-secao").forEach(s=>s.classList.remove("ativa"));
+    document.getElementById("drawer-"+btn.dataset.aba).classList.add("ativa");
+  });
+});
+
+function renderizarTimelineLead(){
+  const caixa = document.getElementById("timelineLead");
+  const atividades = leadAtualDrawer.atividades || [];
+  caixa.innerHTML = atividades.length
+    ? atividades.map(a=>'<div class="timeline-item"><b>'+a.texto+'</b><small>'+a.quando+'</small></div>').join("")
+    : '<div class="vazio">Nenhuma atividade registrada ainda.</div>';
+}
+function renderizarAgendaDoLead(){
+  const caixa = document.getElementById("agendaDoLead");
+  const doLead = agendamentos.filter(a=>a.leadId===leadAtualDrawer.id);
+  caixa.innerHTML = doLead.length
+    ? doLead.map(a=>`
+        <div class="compromisso">
+          <div class="hora-box">${a.hora}</div>
+          <div class="info"><b>${a.titulo}</b><small>${formatarDataLegivel(a.data)}</small></div>
+          <span class="status-pill ${a.status}">${a.status}</span>
+        </div>`).join("")
+    : '<div class="vazio">Nenhum agendamento para esta cliente.</div>';
+}
+
+document.getElementById("btnAgendarDrawer").addEventListener("click", ()=> abrirModalAgendamento(leadAtualDrawer.id));
+document.getElementById("btnAbrirConversaDrawer").addEventListener("click", ()=>{
+  fecharDrawer();
+  document.querySelector('[data-tela="conversas"]').click();
+  abrirConversa(leadAtualDrawer.id);
+});
+
+/* ============================================================
+   25. CONVERSAS — inbox com filtros, não-lidas e automação
+   O envio é simulado no navegador. Para conectar de verdade
+   (ex: WhatsApp Business API), troca-se por chamadas ao backend.
+   Mensagens marcadas como "treino" viram a base de exemplos
+   que futuramente alimenta a IA real.
+   ============================================================ */
+function carregarConversas(){
+  const salvo = localStorage.getItem("pantoja_conversas");
+  if(salvo){ try{ return JSON.parse(salvo); }catch(e){} }
+  return {
+    1: [
+      {autor:"lead", texto:"Oi, vi o conjunto rendado no Instagram, ainda tem no tamanho M?", hora:"09:12"},
+      {autor:"equipe", texto:"Olá Marina! Temos sim, no vermelho e no vinho. Quer que eu separe um pra você?", hora:"09:15", treino:true}
+    ],
+    2: [
+      {autor:"lead", texto:"Vocês entregam no mesmo dia aqui na cidade?", hora:"11:40"},
+      {autor:"lead", texto:"E qual o prazo pra outras cidades?", hora:"11:41"}
+    ],
+    5: [
+      {autor:"lead", texto:"Fechei o pedido, já posso fazer o pix?", hora:"08:02"}
+    ]
+  };
+}
+function salvarConversas(){ localStorage.setItem("pantoja_conversas", JSON.stringify(conversas)); }
+let conversas = carregarConversas();
+let conversaAtualId = null;
+let filtroConversaAtivo = "todas";
+let buscaConversaTexto = "";
+
+const filtrosDisponiveis = [
+  {chave:"todas", rotulo:"Todas"},
+  {chave:"naoatendidas", rotulo:"Não retornadas"},
+  {chave:"quentes", rotulo:"Quentes"}
+];
+
+function leadsFiltradosConversa(){
+  let lista = leads.slice();
+  if(filtroConversaAtivo==="naoatendidas") lista = lista.filter(l=>l.naoRetornado);
+  if(filtroConversaAtivo==="quentes") lista = lista.filter(l=>l.temperatura==="quente");
+  if(buscaConversaTexto){
+    const termo = buscaConversaTexto.toLowerCase();
+    lista = lista.filter(l=> l.nome.toLowerCase().includes(termo) || l.empresa.toLowerCase().includes(termo));
+  }
+  return lista;
+}
+
+function renderizarFiltrosConversa(){
+  const caixa = document.getElementById("filtrosConversa");
+  caixa.innerHTML = filtrosDisponiveis.map(f=>{
+    let qtd = leads.length;
+    if(f.chave==="naoatendidas") qtd = leads.filter(l=>l.naoRetornado).length;
+    if(f.chave==="quentes") qtd = leads.filter(l=>l.temperatura==="quente").length;
+    return '<button class="filtro-chip '+(filtroConversaAtivo===f.chave?'ativo':'')+'" data-filtro="'+f.chave+'">'+f.rotulo+' ('+qtd+')</button>';
+  }).join("");
+
+  caixa.querySelectorAll(".filtro-chip").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      filtroConversaAtivo = btn.dataset.filtro;
+      renderizarListaConversas();
+    });
+  });
+}
+
+document.getElementById("buscaConversas").addEventListener("input", function(){
+  buscaConversaTexto = this.value.trim();
+  renderizarListaConversas();
+});
+
+function renderizarListaConversas(){
+  renderizarFiltrosConversa();
+  const caixa = document.getElementById("listaConversas");
+  const lista = leadsFiltradosConversa();
+
+  if(lista.length===0){
+    caixa.innerHTML = '<div class="vazio">🌹 Nenhuma conversa encontrada.</div>';
+    return;
+  }
+
+  caixa.innerHTML = lista.map(l=>{
+    const historico = conversas[l.id] || [];
+    const ultima = historico[historico.length-1];
+    const iniciais = l.nome.split(" ").map(p=>p[0]).slice(0,2).join("");
+    const naoLidas = l.naoLidas || 0;
+    return `
+      <div class="conversa-item ${conversaAtualId===l.id?'ativa':''}" data-id="${l.id}">
+        <div class="av">${iniciais}</div>
+        <div class="txt">
+          <div class="linha-nome">
+            <b>${l.nome}</b>
+            <span class="hora-msg">${ultima ? ultima.hora : ""}</span>
+          </div>
+          <small>${ultima ? ultima.texto : "Sem mensagens ainda"}</small>
+        </div>
+        ${naoLidas>0 ? '<span class="naolida">'+naoLidas+'</span>' : ''}
+      </div>`;
+  }).join("");
+
+  caixa.querySelectorAll(".conversa-item").forEach(item=>{
+    item.addEventListener("click", ()=> abrirConversa(Number(item.dataset.id)));
+  });
+}
+
+function renderizarTagsConversa(lead){
+  const caixa = document.getElementById("conversaTags");
+  let html = '<span class="tag-funil">'+lead.etapa+'</span><span class="tag ' + lead.temperatura + '">'+lead.temperatura+'</span>';
+  if(lead.naoRetornado) html += '<span class="tag-funil">lead não retornado</span>';
+  if(lead.automacaoPausada) html += '<span class="tag-automacao">🤖 automação pausada</span>';
+  caixa.innerHTML = html;
+}
+
+function abrirConversa(leadId){
+  conversaAtualId = leadId;
+  const lead = leads.find(l=>l.id===leadId);
+  if(!lead) return;
+
+  lead.naoLidas = 0;
+  salvarLeads();
+
+  document.getElementById("conversaNome").textContent = lead.nome;
+  document.getElementById("conversaCabecalho").style.display = "block";
+  document.getElementById("conversaInput").disabled = false;
+  document.getElementById("btnEnviarConversa").disabled = false;
+  document.getElementById("btnToggleAutomacao").textContent = lead.automacaoPausada ? "▶ Retomar automação" : "⏸ Pausar automação";
+
+  renderizarTagsConversa(lead);
+  renderizarListaConversas();
+  renderizarMensagens();
+}
+
+function renderizarMensagens(){
+  const corpo = document.getElementById("conversaCorpo");
+  const historico = conversas[conversaAtualId] || [];
+  corpo.innerHTML = historico.length
+    ? historico.map(m=>'<div class="msg '+m.autor+' '+(m.treino?'treino':'')+'">'+m.texto+'</div>').join("")
+    : '<div class="vazio">Ainda não há mensagens com esta cliente.</div>';
+  corpo.scrollTop = corpo.scrollHeight;
+}
+
+function horaAgora(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+
+document.getElementById("btnRenomearLeadConversa").addEventListener("click", ()=>{
+  if(conversaAtualId===null) return;
+  const lead = leads.find(l=>l.id===conversaAtualId);
+  const novoNome = prompt("Renomear cliente:", lead.nome);
+  if(novoNome && novoNome.trim()){
+    lead.nome = novoNome.trim();
+    salvarLeads();
+    document.getElementById("conversaNome").textContent = lead.nome;
+    renderizarListaConversas(); renderizarDashboard(); renderizarTabelaContatos();
+  }
+});
+
+document.getElementById("btnAgendarConversa").addEventListener("click", ()=>{
+  if(conversaAtualId!==null) abrirModalAgendamento(conversaAtualId);
+});
+
+document.getElementById("btnMarcarAtendidoConversa").addEventListener("click", ()=>{
+  if(conversaAtualId===null) return;
+  const lead = leads.find(l=>l.id===conversaAtualId);
+  lead.naoRetornado = false;
+  registrarAtividade(lead.id, "Marcada como atendida.");
+  salvarLeads();
+  renderizarTagsConversa(lead);
+  renderizarListaConversas(); renderizarDashboard(); montarFila(); renderizarTabelaContatos();
+});
+
+document.getElementById("btnToggleAutomacao").addEventListener("click", function(){
+  if(conversaAtualId===null) return;
+  const lead = leads.find(l=>l.id===conversaAtualId);
+  lead.automacaoPausada = !lead.automacaoPausada;
+  registrarAtividade(lead.id, lead.automacaoPausada ? "Automação pausada (atendimento manual)." : "Automação retomada.");
+  salvarLeads();
+  this.textContent = lead.automacaoPausada ? "▶ Retomar automação" : "⏸ Pausar automação";
+  renderizarTagsConversa(lead);
+});
+
+document.getElementById("btnEnviarConversa").addEventListener("click", enviarMensagemLead);
+document.getElementById("conversaInput").addEventListener("keydown", e=>{ if(e.key==="Enter") enviarMensagemLead(); });
+
+function enviarMensagemLead(){
+  if(conversaAtualId===null){ alert("Escolha uma cliente na lista à esquerda primeiro."); return; }
+  const input = document.getElementById("conversaInput");
+  const texto = input.value.trim();
+  if(!texto) return;
+
+  const marcarComoTreino = document.getElementById("marcarTreino").checked;
+  if(!conversas[conversaAtualId]) conversas[conversaAtualId] = [];
+  conversas[conversaAtualId].push({autor:"equipe", texto:texto, hora:horaAgora(), treino:marcarComoTreino});
+
+  aprenderComTexto(texto);
+
+  if(marcarComoTreino){
+    const historico = conversas[conversaAtualId];
+    const invertido = historico.slice().reverse();
+    const perguntaAnterior = invertido.find(m=>m.autor==="lead");
+    salvarExemploTreino(perguntaAnterior ? perguntaAnterior.texto : "(sem pergunta anterior)", texto);
+    document.getElementById("marcarTreino").checked = false;
+  }
+
+  salvarConversas();
+  input.value = "";
+  renderizarMensagens();
+  renderizarListaConversas();
+
+  setTimeout(()=>{
+    const respostas = ["Entendi, obrigada!", "Pode ser sim.", "Vou avaliar e te retorno.", "Qual o valor exato?", "Perfeito, fico no aguardo."];
+    const resposta = respostas[Math.floor(Math.random()*respostas.length)];
+    conversas[conversaAtualId].push({autor:"lead", texto: resposta, hora:horaAgora()});
+    aprenderComTexto(resposta);
+    salvarConversas();
+    if(conversaAtualId!==null){ renderizarMensagens(); renderizarListaConversas(); }
+  }, 1600);
+}
+
+/* ============================================================
+   26. CONTATOS — tabela de todas as clientes
+   ============================================================ */
+let buscaContatosTexto = "";
+
+document.getElementById("buscaContatos").addEventListener("input", function(){
+  buscaContatosTexto = this.value.trim();
+  renderizarTabelaContatos();
+});
+
+function renderizarTabelaContatos(){
+  const corpo = document.getElementById("tabelaContatosCorpo");
+  let lista = leads.slice();
+  if(buscaContatosTexto){
+    const termo = buscaContatosTexto.toLowerCase();
+    lista = lista.filter(l=> l.nome.toLowerCase().includes(termo) || l.empresa.toLowerCase().includes(termo));
+  }
+
+  if(lista.length===0){
+    corpo.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--texto-dim);padding:24px">Nenhuma cliente encontrada.</td></tr>';
+    return;
+  }
+
+  corpo.innerHTML = lista.map(l=>{
+    const funil = funis.find(f=>f.id===l.funilId);
+    return `
+      <tr data-id="${l.id}">
+        <td class="nome-contato">${l.nome}</td>
+        <td>${l.empresa}</td>
+        <td>${l.telefone}</td>
+        <td>${funil ? funil.nome : "—"}</td>
+        <td>${l.etapa}</td>
+        <td><span class="tag ${l.temperatura}">${l.temperatura}</span></td>
+        <td>
+          <div class="acoes-linha">
+            <button class="icone-mini" data-acao="ver" title="Ver detalhes">👁</button>
+            <button class="icone-mini" data-acao="conversar" title="Conversar">💬</button>
+            <button class="icone-mini" data-acao="excluir" title="Excluir">🗑</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+
+  corpo.querySelectorAll("tr").forEach(linha=>{
+    const id = Number(linha.dataset.id);
+    linha.querySelector('[data-acao="ver"]').addEventListener("click", ()=> abrirDrawer(id));
+    linha.querySelector('[data-acao="conversar"]').addEventListener("click", ()=>{
+      document.querySelector('[data-tela="conversas"]').click();
+      abrirConversa(id);
+    });
+    linha.querySelector('[data-acao="excluir"]').addEventListener("click", ()=>{
+      const lead = leads.find(l=>l.id===id);
+      if(confirm("Excluir a cliente \""+lead.nome+"\"? Essa ação não pode ser desfeita.")){
+        leads = leads.filter(l=>l.id!==id);
+        salvarLeads();
+        renderizarTabelaContatos(); renderizarKanban(); renderizarDashboard(); montarFila(); renderizarListaConversas();
+      }
+    });
+  });
+}
+
+/* ============================================================
+   27. INICIALIZAÇÃO — sempre por último
+   ============================================================ */
+renderizarDashboard();
+renderizarKanban();
+montarFila();
+renderizarSugestoes();
+renderizarAgenda();
+renderizarListaConversas();
+renderizarMemoriaIA();
+</script>
+</body>
+</html>
